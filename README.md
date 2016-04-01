@@ -1,10 +1,54 @@
+<img src="https://avatars0.githubusercontent.com/u/1342004?v=3&s=96" alt="Google Inc. logo" title="Google" align="right" height="96" width="96"/>
+
 # Google APIs Node.js Client
 
+[![npm version][npmimg]][npm]
 [![Build Status][travisimg]][travis]
 [![Code Coverage][coverallsimg]][coveralls]
 
-Google's officially supported [node.js][node] client library for using
-Google APIs. It also supports authorization and authentication with OAuth 2.0.
+Google's officially supported [Node.js][node] client library for using Google
+APIs. Support for authorization and authentication with OAuth 2.0, API Keys and
+JWT (Service Tokens) is included.
+
+<a href="https://nodei.co/npm/googleapis/"><img src="https://nodei.co/npm/googleapis.png?downloads=true&downloadRank=true&stars=true" align="right"/></a>
+
+## Table of Contents
+
+* [Alpha](#alpha)
+* [Migrating to version `2.x` of this library](#migrating-to-version-2x-of-this-library)
+* [Supported APIs](#supported-apis)
+* [Questions/problems?](#questionsproblems)
+* [Working with Google Cloud Platform APIs?](#working-with-google-cloud-platform-apis)
+* [Installation](#installation)
+* [Usage](#usage)
+  * [Create a service client](#create-a-service-client)
+  * [Authorizing and authenticating](#authorizing-and-authenticating)
+    * [OAuth2 client](#oauth2-client)
+      * [Generating an authentication URL](#generating-an-authentication-url)
+      * [Retrieve authorization code](#retrieve-authorization-code)
+      * [Retrieve access token](#retrieve-access-token)
+      * [Setting global or service-level auth](#setting-global-or-service-level-auth)
+      * [Making authenticated requests](#making-authenticated-requests)
+      * [Manually refreshing access token](#manually-refreshing-access-token)
+    * [Using API keys](#using-api-keys)
+    * [Using JWT (Service Tokens)](#using-jwt-service-tokens)
+    * [Choosing the correct credential type automatically](#choosing-the-correct-credential-type-automatically)
+  * [Specifying request body](#specifying-request-body)
+  * [Media uploads](#media-uploads)
+    * [Example: Upload a plain text file to Google Drive](#example-upload-a-plain-text-file-to-google-drive)
+    * [Example: Upload an image to Google Drive from a readable stream](#example-upload-an-image-to-google-drive-from-a-readable-stream)
+  * [Exposing request object](#exposing-request-object)
+  * [Options](#options)
+    * [Available options](#available-options)
+    * [Global options](#global-options)
+      * [Example: Specifying a default proxy and `auth` to be used for each request](#example-specifying-a-default-proxy-and-auth-to-be-used-for-each-request)
+      * [Example: Specifying global request parameters](#example-specifying-global-request-parameters)
+    * [Service-client options](#service-client-options)
+      * [Example: Specifying a default `auth` option (API key or OAuth2 client)](#example-specifying-a-default-auth-option-api-key-or-oauth2-client)
+      * [Example: Specifying default service client query parameters](#example-specifying-default-service-client-query-parameters)
+    * [Request-level options](#request-level-options)
+* [License](#license)
+* [Contributing](#contributing)
 
 ### Alpha
 
@@ -21,18 +65,21 @@ as explained in the [Migration Guide][migrating].
 
 ### Supported APIs
 
-The full list of supported APIs can be found [here][supported-list]. The API endpoints are automatically generated, so if the API is not in the list, it is currently not supported by this API client library. 
+The full list of supported APIs can be found [here][supported-list]. The API endpoints are automatically generated, so if the API is not in the list, it is currently not supported by this API client library.
 
 ### Questions/problems?
 
 * Ask your development related questions on [![Ask a question on Stackoverflow][overflowimg]][stackoverflow]
 * If you've found an bug/issue, please [file it on GitHub][bugs].
 
-### Working with Google Cloud APIs?
+### Working with Google Cloud Platform APIs?
 
 If you're working with [Google Cloud Platform][cloudplatform] APIs such as
-Datastore, Cloud Storage or Pub/Sub, consider using [`gcloud`][gcloud], a
-Node idiomatic client for Google Cloud services.
+Datastore, Cloud Storage or Pub/Sub, consider using [`gcloud`][gcloud], an
+idiomatic Node.js client for Google Cloud Platform services.
+
+You can find the list of Google Cloud Platform APIs supported by gcloud in the
+[gcloud docs][gcloudapis].
 
 ## Installation
 
@@ -78,7 +125,9 @@ var urlshortener = google.urlshortener('v1');
 
 Supported APIs are listed on the [Google APIs Explorer][apiexplorer].
 
-### Authorizing and Authenticating
+### Authorizing and authenticating
+
+#### OAuth2 client
 
 This client comes with an [OAuth2][oauth] client that allows you to retrieve an
 access token and refreshes the token and retry the request seamlessly if token
@@ -92,9 +141,9 @@ In the following examples, you may need a `CLIENT_ID`, `CLIENT_SECRET` and
 For more information about OAuth2 and how it works, [see here][oauth].
 
 A complete sample application that authorizes and authenticates with the OAuth2
-client is available at [`examples/oauth2.js`][oauthexample].
+client is available at [`samples/oauth2.js`][oauthexample].
 
-#### Generating an authentication URL
+##### Generating an authentication URL
 
 To ask for permissions from a user to retrieve an access token, you
 redirect them to a consent page. To create a consent page URL:
@@ -117,14 +166,14 @@ var url = oauth2Client.generateAuthUrl({
 });
 ```
 
-#### Retrieve authorization code
+##### Retrieve authorization code
 
 Once a user has given permissions on the consent page, Google will redirect
 the page to the redirect URL you have provided with a code query parameter.
 
     GET /oauthcallback?code={authorizationCode}
 
-#### Retrieve access token
+##### Retrieve access token
 
 With the code returned, you can ask for an access token as shown below:
 
@@ -137,7 +186,7 @@ oauth2Client.getToken(code, function(err, tokens) {
 });
 ```
 
-#### Setting global or service-level auth
+##### Setting global or service-level auth
 
 You can set the `auth` as a global or service-level option so you don't need to
 specify it every request.
@@ -163,7 +212,7 @@ var drive = google.drive({ version: 'v2', auth: oauth2Client });
 
 See the [Options section][options] for more information.
 
-#### Making Authenticated Requests
+##### Making authenticated requests
 
 You can start using OAuth2 to authorize and authenticate your
 requests to Google APIs with the retrieved tokens. If you provide a
@@ -189,7 +238,7 @@ plus.people.get({ userId: 'me', auth: oauth2Client }, function(err, response) {
 });
 ```
 
-#### Manually refreshing access token
+##### Manually refreshing access token
 
 If you need to manually refresh the `access_token` associated with your OAuth2
 client, make sure you have a `refresh_token` set in your credentials first and
@@ -250,7 +299,7 @@ jwtClient.authorize(function(err, tokens) {
 });
 ```
 
-The parameters for the JWT auth client including how to use it with a `.pem` file are explained in [examples/jwt.js](examples/jwt.js)
+The parameters for the JWT auth client including how to use it with a `.pem` file are explained in [samples/jwt.js](samples/jwt.js)
 
 #### Choosing the correct credential type automatically
 
@@ -264,10 +313,10 @@ is running on a configured instance of Google Compute Engine.
 
 The code below shows how to retrieve a default credential type, depending upon the runtime
 environment. The createScopedRequired must be called to determine when you need to pass
-in the scopes manually, and when they have been set for you automatically based on the 
+in the scopes manually, and when they have been set for you automatically based on the
 configured runtime environment.
 
-``` js
+```js
 google.auth.getApplicationDefault(function(err, authClient) {
   if (err) {
     res.send('Failed to get the default credentials: ' + String(err));
@@ -283,6 +332,7 @@ google.auth.getApplicationDefault(function(err, authClient) {
   }
   // Fetch the list of GCE zones within a project.
   // NOTE: You must fill in your valid project ID before running this sample!
+  var compute = google.compute({ version: 'v1', auth: authClient });
   var projectId = 'fill in your project id here!';
   compute.zones.list({ project: projectId, auth: authClient }, function(error, result) {
     console.log(error, result);
@@ -290,25 +340,27 @@ google.auth.getApplicationDefault(function(err, authClient) {
 });
 ```
 
-### Specifying Request Body
+### Specifying request body
 
 The body of the request is specified in the `resource` parameter object of the request. The resource/body is specified as a JavaScript object with key/value pairs. See the example in the next section below for an example on how it is specified.
 
-### Media Uploads
+### Media uploads
 
 This client supports multipart media uploads. The resource parameters are
 specified in the `resource` parameter object, and the media itself is
 specified in the `media.body` parameter with mime-type specified in `media.mimeType`.
 
-Example: Upload a plain text file to Google Drive with the title "Test" and
+##### Example: Upload a plain text file to Google Drive
+
+This example uploads a plain text file to Google Drive with the title "Test" and
 contents "Hello World".
 
 ``` js
 var drive = google.drive({ version: 'v2', auth: oauth2Client });
 
-drive.files.insert({
+drive.files.create({
   resource: {
-    title: 'Test',
+    name: 'Test',
     mimeType: 'text/plain'
   },
   media: {
@@ -323,15 +375,15 @@ This can allow you to upload very large files that cannot fit into memory.
 
 Note: Your readable stream may be [unstable][stability]. Use at your own risk.
 
-Example: Upload an image to Google Drive from a readable stream.
+##### Example: Upload an image to Google Drive from a readable stream
 
-``` js
+```js
 var fs = require('fs');
 var drive = google.drive({ version: 'v2', auth: oauth2Client });
 
-drive.files.insert({
+drive.files.create({
   resource: {
-    title: 'testimage.png',
+    name: 'testimage.png',
     mimeType: 'image/png'
   },
   media: {
@@ -342,19 +394,19 @@ drive.files.insert({
 ```
 
 For more examples of creation and modification requests with media attachments,
-take a look at the `examples/mediaupload.js` sample.
+take a look at the `samples/mediaupload.js` sample.
 
-## Exposing request object
+### Exposing request object
 
 Every request to the API returns a [`request`][request] object, allowing you to track
 the request's progress or general information about the request.
 
-``` js
-var req = drive.files.insert(/* ... */);
+```js
+var req = drive.files.create(/* ... */);
 console.log(req.uri.href); // print out the request's URL.
 ```
 
-## Options
+### Options
 
 For more fine-tuned control over how your API calls are made,
 we provide you with the ability to specify additional options that can
@@ -364,39 +416,39 @@ this library to make network calls to the API.
 You may specify additional options either in the global `google` object or on a
 service client basis.
 
-### Available options
+#### Available options
 
 The options you specify are attached to the `request` object so whatever
 `request` supports, this library supports. You may also specify global or per-service request parameters that will be attached to all API calls you make.
 
 A full list of supported options can be [found here][requestopts].
 
-### Global options
+#### Global options
 
-#### Example: Specifying a default proxy and `auth` to be used for each request.
+##### Example: Specifying a default proxy and `auth` to be used for each request
 
-``` js
+```js
 var google = require('googleapis');
 google.options({ proxy: 'http://proxy.example.com', auth: auth });
 
 // All requests made with this object will use these settings unless overridden.
 ```
 
-#### Example: Specifying global request parameters.
+##### Example: Specifying global request parameters
 
 ```js
 var google = require('googleapis');
 google.options({ params: { quotaUser: 'user123@example.com' } });
 
 // All requests from all services will contain the above query parameter
-// unless overriden either in a service client or in individual API calls.
+// unless overridden either in a service client or in individual API calls.
 ```
 
-### Service-client options
+#### Service-client options
 
 You can also specify options when creating a service client.
 
-#### Example: Specifying a default `auth` option (API key or OAuth2 client)
+##### Example: Specifying a default `auth` option (API key or OAuth2 client)
 
 ```js
 var auth = 'API KEY'; // or you could use oauth2Client
@@ -411,7 +463,7 @@ to authenticate.
 **Note:** Created clients are **immutable** so you must create a new one if you
 want to specify different options.
 
-#### Example: Specifying default service client query parameters
+##### Example: Specifying default service client query parameters
 
 ```js
 var urlshortener = google.urlshortener({
@@ -419,13 +471,13 @@ var urlshortener = google.urlshortener({
   params: { quotaUser: 'user123@example.com' }
 });
 // All requests made with this service client will contain the
-// quotaUser query parameter unless overriden in individual API calls.
+// quotaUser query parameter unless overridden in individual API calls.
 
 // Calls with this drive client will NOT contain the quotaUser query parameter.
 var drive = google.drive('v2');
 ```
 
-### Request-level options
+#### Request-level options
 
 You can specify an `auth` object to be used per request. Each request also
 inherits the options specified at the service level and global level.
@@ -439,6 +491,8 @@ available in [COPYING][copying].
 
 See [CONTRIBUTING][contributing].
 
+[npmimg]: https://img.shields.io/npm/v/googleapis.svg
+[npm]: https://www.npmjs.org/package/googleapis
 [travisimg]: https://api.travis-ci.org/google/google-api-nodejs-client.svg
 [supported-list]: https://developers.google.com/apis-explorer/
 [bugs]: https://github.com/google/google-api-nodejs-client/issues
@@ -448,20 +502,21 @@ See [CONTRIBUTING][contributing].
 [apiexplorer]: https://developers.google.com/apis-explorer
 [urlshort]: https://developers.google.com/url-shortener/
 [usingkeys]: https://developers.google.com/console/help/#UsingKeys
-[contributing]: https://github.com/google/google-api-nodejs-client/tree/master/CONTRIBUTING.md
+[contributing]: https://github.com/google/google-api-nodejs-client/blob/master/.github/CONTRIBUTING.md
 [copying]: https://github.com/google/google-api-nodejs-client/tree/master/COPYING
-[authdocs]: https://developers.google.com/accounts/docs/OAuth2Login
-[request]: https://github.com/mikeal/request
-[requestopts]: https://github.com/mikeal/request#requestoptions-callback
+[authdocs]: https://developers.google.com/identity/protocols/OpenIDConnect
+[request]: https://github.com/request/request
+[requestopts]: https://github.com/request/request#requestoptions-callback
 [stream]: http://nodejs.org/api/stream.html#stream_class_stream_readable
 [migrating]: https://github.com/google/google-api-nodejs-client/tree/master/MIGRATING.md
 [stability]: http://nodejs.org/api/stream.html#stream_stream
 [overflowimg]: https://googledrive.com/host/0ByfSjdPVs9MZbkhjeUhMYzRTeEE/stackoveflow-tag.png
 [devconsole]: https://console.developer.google.com
-[oauth]: https://developers.google.com/accounts/docs/OAuth2
-[oauthexample]: https://github.com/google/google-api-nodejs-client/tree/master/examples/oauth2.js
+[oauth]: https://developers.google.com/identity/protocols/OAuth2
+[oauthexample]: https://github.com/google/google-api-nodejs-client/tree/master/samples/oauth2.js
 [options]: https://github.com/google/google-api-nodejs-client/tree/master#options
 [gcloud]: https://github.com/GoogleCloudPlatform/gcloud-node
+[gcloudapis]: https://googlecloudplatform.github.io/gcloud-node/#/docs/gcloud
 [cloudplatform]: https://cloud.google.com/docs/
-[coveralls]: https://coveralls.io/r/google/google-api-nodejs-client?branch=master
-[coverallsimg]: https://img.shields.io/coveralls/google/google-api-nodejs-client.svg
+[coverallsimg]: https://coveralls.io/repos/github/google/google-api-nodejs-client/badge.svg?branch=master
+[coveralls]: https://coveralls.io/github/google/google-api-nodejs-client?branch=master

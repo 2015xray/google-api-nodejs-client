@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Google Inc. All Rights Reserved.
+ * Copyright 2012 Google Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-var google = require('../lib/googleapis.js');
+var google = require('../../lib/googleapis.js');
 var urlshortener = google.urlshortener('v1');
-var plus = google.plus('v1');
 
-// PUT your API key here or this example will return errors
-// To learn more about API keys, please see:
-// https://developers.google.com/console/help/#UsingKeys
-var API_KEY = 'AIzaSyBzQOyq8uKZKMTRfEPP-Qbrmy98CopcZRY';
+var printResult = function(err, result) {
+  if (err) {
+    console.log('Error occurred: ', err);
+  } else {
+    console.log('Result: ', result);
+  }
+};
 
-urlshortener.url.get({ shortUrl: 'http://goo.gl/xKbRu3', auth: API_KEY });
-plus.people.get({ userId: '+google', auth: API_KEY });
+urlshortener.url.get({ shortUrl: 'http://goo.gl/DdUKX' }, printResult);
+urlshortener.url.insert({ resource: {
+    longUrl: 'http://somelongurl.com' }
+}, printResult);
